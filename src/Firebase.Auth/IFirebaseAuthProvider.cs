@@ -35,8 +35,9 @@
         /// </summary>
         /// <param name="email"> The email. </param>
         /// <param name="password"> The password. </param>
+        /// <param name="tenantId"></param>
         /// <returns> The <see cref="FirebaseAuthLink"/>. </returns>
-        Task<FirebaseAuthLink> SignInWithEmailAndPasswordAsync(string email, string password);
+        Task<FirebaseAuthLink> SignInWithEmailAndPasswordAsync(string email, string password, string tenantId = null);
 
         /// <summary>
         /// Using the provided access token from third party auth provider (google, facebook...), get the firebase auth with token and basic user credentials.
@@ -52,6 +53,22 @@
         /// <param name="customToken"> The access token retrieved from login provider of your choice. </param>
         /// <returns> The <see cref="FirebaseAuth"/>. </returns>
         Task<FirebaseAuthLink> SignInWithCustomTokenAsync(string customToken);
+
+        /// <summary>
+        /// Updates the User email.
+        /// </summary>
+        /// <param name="idToken"> The idToken of an authenticated user. </param>
+        /// <param name="newEmail"> The new email</param>
+        /// <returns></returns>
+        Task<FirebaseAuthLink> ChangeUserEmail(string idToken, string newEmail);
+
+        /// <summary>
+        /// Updates profile (displayName and photoUrl) of user tied to given user token.
+        /// </summary>
+        /// <param name="displayName"> The new display name. </param>
+        /// <param name="photoUrl"> The new photo URL. </param>
+        /// <returns> The <see cref="FirebaseAuthLink"/>. </returns>
+        Task<FirebaseAuthLink> UpdateProfileAsync(string firebaseToken, string displayName, string photoUrl);
 
         /// <summary>
         /// Links the authenticated user represented by <see cref="auth"/> with an email and password. 
@@ -90,6 +107,22 @@
         Task<FirebaseAuthLink> LinkAccountsAsync(string firebaseToken, FirebaseAuthType authType, string oauthAccessToken);
 
         /// <summary>
+        /// Unlinks the given <see cref="authType"/> from the account associated with <see cref="firebaseToken"/>.
+        /// </summary>
+        /// <param name="firebaseToken"> The FirebaseToken (idToken) of an authenticated user. </param>
+        /// <param name="authType"> The auth type.  </param>
+        /// <returns> The <see cref="FirebaseAuthLink"/>.  </returns>
+        Task<FirebaseAuthLink> UnlinkAccountsAsync(string firebaseToken, FirebaseAuthType authType);
+
+        /// <summary>
+        /// Unlinks the given <see cref="authType"/> from the authenticated user represented by <see cref="auth"/>.
+        /// </summary>
+        /// <param name="auth"> The auth. </param>
+        /// <param name="authType"> The auth type.  </param>
+        /// <returns> The <see cref="FirebaseAuthLink"/>.  </returns>
+        Task<FirebaseAuthLink> UnlinkAccountsAsync(FirebaseAuth auth, FirebaseAuthType authType);
+
+        /// <summary>
         /// Gets a list of accounts linked to given email.
         /// </summary>
         /// <param name="email"> Email address. </param>
@@ -121,5 +154,18 @@
         /// </summary>
         /// <param name="auth"> The authenticated user to verify email address. </param>
         Task SendEmailVerificationAsync(FirebaseAuth auth);
+
+        /// <summary>
+        /// Refreshes given auth using its refresh token.
+        /// </summary>
+        /// <param name="auth"> The authenticated user to have its access token refreshed. </param>
+        /// <returns> The <see cref="FirebaseAuthLink"/>. </returns>
+        Task<FirebaseAuthLink> RefreshAuthAsync(FirebaseAuth auth);
+
+        /// <summary>
+        /// Deletes the user with a recent Firebase Token.
+        /// </summary>
+        /// <param name="token"> Recent Firebase Token. </param>
+        Task DeleteUser(string firebaseToken);
     }
 }

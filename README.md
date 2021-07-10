@@ -1,6 +1,8 @@
 # FirebaseAuthentication.net
 [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/rwmdgqcb7is2clqp?svg=true)](https://ci.appveyor.com/project/bezysoftware/firebase-authentication-dotnet)
 
+❗ New version of this library with **FirebaseUI** support is being developed in [v4 branch](https://github.com/step-up-labs/firebase-authentication-dotnet/tree/feature/v4) ❗
+
 Firebase authentication library. It can generate Firebase auth token based on given OAuth token (issued by Google, Facebook...). This Firebase token can then be used with REST queries against Firebase Database endpoints. See [FirebaseDatabase.net](https://github.com/step-up-labs/firebase-database-dotnet) for a C# library wrapping the Firebase Database REST queries.
 
 ## Installation
@@ -28,10 +30,15 @@ var facebookAccessToken = "<login with facebook and get oauth access token>";
 
 var auth = await authProvider.SignInWithOAuthAsync(FirebaseAuthType.Facebook, facebookAccessToken);
 
-var firebase = new FirebaseClient("https://dinosaur-facts.firebaseio.com/");
+var firebase = new FirebaseClient(
+  "https://dinosaur-facts.firebaseio.com/",
+  new FirebaseOptions
+  {
+    AuthTokenAsyncFactory = () => Task.FromResult(auth.FirebaseToken) 
+  });
+
 var dinos = await firebase
   .Child("dinosaurs")
-  .WithAuth(auth.FirebaseToken)
   .OnceAsync<Dinosaur>();
   
 foreach (var dino in dinos)

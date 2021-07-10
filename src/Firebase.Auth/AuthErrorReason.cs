@@ -7,9 +7,17 @@
         /// </summary>
         Undefined,
         /// <summary>
+        /// The sign in method is not enabled.
+        /// </summary>
+        OperationNotAllowed,
+        /// <summary>
         /// The user was disabled and is not granted access anymore.
         /// </summary>
         UserDisabled,
+        /// <summary>
+        /// The user was not found
+        /// </summary>
+        UserNotFound,
         /// <summary>
         /// Third-party Auth Providers: PostBody does not contain or contains invalid Authentication Provider string.
         /// </summary>
@@ -59,9 +67,17 @@
         /// </summary>
         WrongPassword,
         /// <summary>
+        /// Email/Password Signin: Too many password login have been attempted. Try again later.
+        /// </summary>
+        TooManyAttemptsTryLater,
+        /// <summary>
         /// Password Recovery: Request does not contain a value for parameter: requestType or supplied value is invalid.
         /// </summary>
         MissingRequestType,
+        /// <summary>
+        /// Password Recovery: Reset password limit exceeded.
+        /// </summary>
+        ResetPasswordExceedLimit,
         /// <summary>
         /// Account Linking: Authenticated User ID Token is invalid!
         /// </summary>
@@ -73,7 +89,18 @@
         /// <summary>
         /// Linked Accounts: Request contains an invalid value for parameter: identifier.
         /// </summary>
-        InvalidIdentifier
-
+        InvalidIdentifier,
+        /// <summary>
+        /// Linked accounts: account to link has already been linked.
+        /// </summary>
+        AlreadyLinked,
+        /// <summary>
+        /// Third-party Auth Providers: PostBody contains an Id Token string obtained from Auth Provider which is actually stale.
+        /// </summary>
+        StaleIDToken,
+        /// <summary>
+        /// Third-party Auth Providers: PostBody contains an Id Token string obtained from Auth Provider which has already been received.
+        /// </summary>
+        DuplicateCredentialUse
     }
 }
