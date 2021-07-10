@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>FirebaseAuthNet</PackageId>
-    <PackageVersion>1.0.1</PackageVersion>
+    <PackageVersion>1.0.2</PackageVersion>
     <Authors>Emil Alipiev</Authors>
     <Description>Firebase authentication library. It can generate Firebase auth token based on given OAuth token (issued by Google, Facebook...). This Firebase token can then be used with REST queries against Firebase endpoints. </Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -18,7 +18,7 @@
     <Product>FirebaseAuthNet</Product>
     <RepositoryUrl>https://github.com/EmilAlipiev/firebase-authentication-dotnet</RepositoryUrl>
     <Version>1.0.1</Version>
-    <PackageReleaseNotes>- account linking extended with google and twitter</PackageReleaseNotes>
+    <PackageReleaseNotes>Apple login extended</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

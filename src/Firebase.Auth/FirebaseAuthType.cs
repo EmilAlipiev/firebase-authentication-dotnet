@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+
 using System.ComponentModel;
 using System.Runtime.Serialization;
 
@@ -23,6 +24,12 @@ namespace Firebase.Auth
         Google,
 
         /// <summary>
+        /// The apple auth.
+        /// </summary>
+        [EnumMember(Value = "apple.com")]
+        Apple,
+
+        /// <summary>
         /// The github auth.
         /// </summary>
         [EnumMember(Value = "github.com")]
@@ -39,5 +46,5 @@ namespace Firebase.Auth
         /// </summary>
         [EnumMember(Value = "password")]
         EmailAndPassword
-    } 
+    }
 }

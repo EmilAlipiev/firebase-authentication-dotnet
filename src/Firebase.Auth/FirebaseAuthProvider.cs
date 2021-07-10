@@ -6,6 +6,7 @@
     using System.Net.Http;
     using System.Text;
     using System.Threading.Tasks;
+
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
@@ -24,6 +25,8 @@
         private const string GoogleGetConfirmationCodeUrl = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobConfirmationCode?key={0}";
         private const string GoogleSetAccountUrl = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo?key={0}";
         private const string GoogleCreateAuthUrl = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/createAuthUri?key={0}";
+        private const string GoogleUpdateUserPassword = "https://identitytoolkit.googleapis.com/v1/accounts:update?key={0}";
+
 
         private const string ProfileDeleteDisplayName = "DISPLAY_NAME";
         private const string ProfileDeletePhotoUrl = "PHOTO_URL";
@@ -38,7 +41,7 @@
         public FirebaseAuthProvider(FirebaseConfig authConfig)
         {
             this.authConfig = authConfig;
-            client = new HttpClient();
+            this.client = new HttpClient();
         }
 
         /// <summary>
@@ -49,8 +52,8 @@
         public async Task<FirebaseAuthLink> SignInWithCustomTokenAsync(string customToken)
         {
             string content = $"{{\"token\":\"{customToken}\",\"returnSecureToken\":true}}";
-            FirebaseAuthLink firebaseAuthLink = await ExecuteWithPostContentAsync(GoogleCustomAuthUrl, content).ConfigureAwait(false);
-            firebaseAuthLink.User = await GetUserAsync(firebaseAuthLink.FirebaseToken).ConfigureAwait(false);
+            FirebaseAuthLink firebaseAuthLink = await this.ExecuteWithPostContentAsync(GoogleCustomAuthUrl, content).ConfigureAwait(false);
+            firebaseAuthLink.User = await this.GetUserAsync(firebaseAuthLink.FirebaseToken).ConfigureAwait(false);
             return firebaseAuthLink;
         }
 
@@ -61,12 +64,23 @@
         /// <returns> The <see cref="User"/>. </returns>
         public async Task<User> GetUserAsync(string firebaseToken)
         {
-            string content = $"{{\"idToken\":\"{firebaseToken}\"}}";
-            HttpResponseMessage response = await client.PostAsync(new Uri(string.Format(GoogleGetUser, authConfig.ApiKey)), new StringContent(content, Encoding.UTF8, "application/json")).ConfigureAwait(false);
+            var content = $"{{\"idToken\":\"{firebaseToken}\"}}";
+            var responseData = "N/A";
+            try
+            {
+                var response = await this.client.PostAsync(new Uri(string.Format(GoogleGetUser, this.authConfig.ApiKey)), new StringContent(content, Encoding.UTF8, "application/json")).ConfigureAwait(false);
+                responseData = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
 
-            JObject resultJson = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-            User user = JsonConvert.DeserializeObject<User>(resultJson["users"].First().ToString());
-            return user;
+                var resultJson = JObject.Parse(responseData);
+                var user = JsonConvert.DeserializeObject<User>(resultJson["users"].First().ToString());
+                return user;
+            }
+            catch (Exception ex)
+            {
+                AuthErrorReason errorReason = GetFailureReason(responseData);
+                throw new FirebaseAuthException(GoogleDeleteUserUrl, content, responseData, ex, errorReason);
+            }
         }
 
         /// <summary>
@@ -75,35 +89,67 @@
         /// <param name="auth"> The authenticated user to verify email address. </param>
         public async Task<User> GetUserAsync(FirebaseAuth auth)
         {
-            return await GetUserAsync(auth.FirebaseToken).ConfigureAwait(false);
+            return await this.GetUserAsync(auth.FirebaseToken).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Using the provided access token from third party auth provider (google, facebook...), get the firebase auth with token and basic user credentials.
+        /// Using the provided access token from third party auth provider (google, facebook...), or ID token (apple), get the firebase auth with token and basic user credentials.
         /// </summary>
         /// <param name="authType"> The auth type. </param>
-        /// <param name="oauthAccessToken"> The access token retrieved from login provider of your choice. </param>
+        /// <param name="oauthAccessToken"> The access token or ID token retrieved from login provider of your choice. </param>
         /// <returns> The <see cref="FirebaseAuth"/>. </returns>
         public async Task<FirebaseAuthLink> SignInWithOAuthAsync(FirebaseAuthType authType, string oauthAccessToken)
         {
-            string providerId = GetProviderId(authType);
-            string content = $"{{\"postBody\":\"access_token={oauthAccessToken}&providerId={providerId}\",\"requestUri\":\"http://localhost\",\"returnSecureToken\":true}}";
+            var providerId = this.GetProviderId(authType);
 
-            return await ExecuteWithPostContentAsync(GoogleIdentityUrl, content).ConfigureAwait(false);
+            string content;
+
+            switch (authType)
+            {
+                case FirebaseAuthType.Apple:
+                    content = $"{{\"postBody\":\"id_token={oauthAccessToken}&providerId={providerId}\",\"requestUri\":\"http://localhost\",\"returnSecureToken\":true}}";
+                    break;
+                default:
+                    content = $"{{\"postBody\":\"access_token={oauthAccessToken}&providerId={providerId}\",\"requestUri\":\"http://localhost\",\"returnSecureToken\":true}}";
+                    break;
+            }
+
+            FirebaseAuthLink firebaseAuthLink = await this.ExecuteWithPostContentAsync(GoogleIdentityUrl, content).ConfigureAwait(false);
+            firebaseAuthLink.User = await this.GetUserAsync(firebaseAuthLink.FirebaseToken).ConfigureAwait(false);
+            return firebaseAuthLink;
         }
 
         /// <summary>
         /// Using the provided Id token from google signin, get the firebase auth with token and basic user credentials.
         /// </summary>
         /// <param name="authType"> The auth type. </param>
-        /// <param name="IdToken"> The Id token retrieved from google signin </param>
+        /// <param name="oauthAccessToken"> The access token retrieved from twitter. </param>
+        /// <param name="oauthAccessToken"> The access token secret supplied by twitter. </param>
         /// <returns> The <see cref="FirebaseAuth"/>. </returns>
-        public async Task<FirebaseAuthLink> SignInWithIdTokenAsync(string IdToken)
+        public async Task<FirebaseAuthLink> SignInWithOAuthTwitterTokenAsync(string oauthAccessToken, string oauthTokenSecret)
         {
-            string providerId = GetProviderId(FirebaseAuthType.Google);
-            string content = $"{{\"postBody\":\"id_token={IdToken}&providerId={providerId}\",\"requestUri\":\"http://localhost\",\"returnSecureToken\":true}}";
+            var providerId = this.GetProviderId(FirebaseAuthType.Twitter);
+            var content = $"{{\"postBody\":\"access_token={oauthAccessToken}&oauth_token_secret={oauthTokenSecret}&providerId={providerId}\",\"requestUri\":\"http://localhost\",\"returnSecureToken\":true}}";
 
-            return await ExecuteWithPostContentAsync(GoogleIdentityUrl, content).ConfigureAwait(false);
+            FirebaseAuthLink firebaseAuthLink = await this.ExecuteWithPostContentAsync(GoogleIdentityUrl, content).ConfigureAwait(false);
+            firebaseAuthLink.User = await this.GetUserAsync(firebaseAuthLink.FirebaseToken).ConfigureAwait(false);
+            return firebaseAuthLink;
+        }
+
+        /// <summary>
+        /// Using the provided Id token from google signin, get the firebase auth with token and basic user credentials.
+        /// </summary>
+        /// <param name="authType"> The auth type. </param>
+        /// <param name="idToken"> The Id token retrieved from google signin </param>
+        /// <returns> The <see cref="FirebaseAuth"/>. </returns>
+        public async Task<FirebaseAuthLink> SignInWithGoogleIdTokenAsync(string idToken)
+        {
+            var providerId = this.GetProviderId(FirebaseAuthType.Google);
+            var content = $"{{\"postBody\":\"id_token={idToken}&providerId={providerId}\",\"requestUri\":\"http://localhost\",\"returnSecureToken\":true}}";
+
+            FirebaseAuthLink firebaseAuthLink = await this.ExecuteWithPostContentAsync(GoogleIdentityUrl, content).ConfigureAwait(false);
+            firebaseAuthLink.User = await this.GetUserAsync(firebaseAuthLink.FirebaseToken).ConfigureAwait(false);
+            return firebaseAuthLink;
         }
 
         /// <summary>
@@ -112,9 +158,9 @@
         /// <returns> The <see cref="FirebaseAuth"/>. </returns>
         public async Task<FirebaseAuthLink> SignInAnonymouslyAsync()
         {
-            string content = $"{{\"returnSecureToken\":true}}";
+            var content = $"{{\"returnSecureToken\":true}}";
 
-            return await ExecuteWithPostContentAsync(GoogleSignUpUrl, content).ConfigureAwait(false);
+            return await this.ExecuteWithPostContentAsync(GoogleSignUpUrl, content).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -122,14 +168,50 @@
         /// </summary>
         /// <param name="email"> The email. </param>
         /// <param name="password"> The password. </param>
+        /// <param name="tenantId"></param>
         /// <returns> The <see cref="FirebaseAuth"/>. </returns>
-        public async Task<FirebaseAuthLink> SignInWithEmailAndPasswordAsync(string email, string password)
+        public async Task<FirebaseAuthLink> SignInWithEmailAndPasswordAsync(string email, string password,
+            string tenantId = null)
         {
-            string content = $"{{\"email\":\"{email}\",\"password\":\"{password}\",\"returnSecureToken\":true}}";
+            StringBuilder sb = new StringBuilder($"{{\"email\":\"{email}\",\"password\":\"{password}\",");
 
-            return await ExecuteWithPostContentAsync(GooglePasswordUrl, content).ConfigureAwait(false);
+            if (tenantId != null)
+            {
+                sb.Append($"\"tenantId\":\"{tenantId}\",");
+            }
+
+            sb.Append("\"returnSecureToken\":true}");
+
+            FirebaseAuthLink firebaseAuthLink = await this.ExecuteWithPostContentAsync(GooglePasswordUrl, sb.ToString()).ConfigureAwait(false);
+            firebaseAuthLink.User = await this.GetUserAsync(firebaseAuthLink.FirebaseToken).ConfigureAwait(false);
+            return firebaseAuthLink;
         }
 
+        /// <summary>
+        /// Change a password from an user with his token.
+        /// </summary>
+        /// <param name="idToken"> The Token from an user. </param>
+        /// <param name="password"> The new password. </param>
+        /// <returns> The <see cref="FirebaseAuth"/>. </returns>
+        public async Task<FirebaseAuthLink> ChangePasswordAsync(string idToken, string newpassword)
+        {
+            var content = $"{{\"idToken\":\"{idToken}\",\"password\":\"{newpassword}\",\"returnSecureToken\":true}}";
+
+            return await this.ExecuteWithPostContentAsync(GoogleUpdateUserPassword, content).ConfigureAwait(false);
+        }
+       
+        /// <summary>
+        /// Change a email from an user with his token.
+        /// </summary>
+        /// <param name="idToken"> The Token from an user. </param>
+        /// <param name="newEmail"> The new email. </param>
+        /// <returns> The <see cref="FirebaseAuth"/>. </returns>
+        public async Task<FirebaseAuthLink> ChangeUserEmail(string idToken, string newEmail)
+        {
+            var content = $"{{\"idToken\":\"{idToken}\",\"email\":\"{newEmail}\",\"returnSecureToken\":true}}";
+
+            return await this.ExecuteWithPostContentAsync(GoogleUpdateUserPassword, content).ConfigureAwait(false);
+        }
 
         /// <summary>
         /// Creates new user with given credentials.
@@ -141,16 +223,16 @@
         /// <returns> The <see cref="FirebaseAuth"/>. </returns>
         public async Task<FirebaseAuthLink> CreateUserWithEmailAndPasswordAsync(string email, string password, string displayName = "", bool sendVerificationEmail = false, string locale = null)
         {
-            string content = $"{{\"email\":\"{email}\",\"password\":\"{password}\",\"returnSecureToken\":true}}";
+            var content = $"{{\"email\":\"{email}\",\"password\":\"{password}\",\"returnSecureToken\":true}}";
 
-            FirebaseAuthLink signup = await ExecuteWithPostContentAsync(GoogleSignUpUrl, content).ConfigureAwait(false);
+            var signup = await this.ExecuteWithPostContentAsync(GoogleSignUpUrl, content).ConfigureAwait(false);
 
             if (!string.IsNullOrWhiteSpace(displayName))
             {
                 // set display name
                 content = $"{{\"displayName\":\"{displayName}\",\"idToken\":\"{signup.FirebaseToken}\",\"returnSecureToken\":true}}";
 
-                await ExecuteWithPostContentAsync(GoogleSetAccountUrl, content).ConfigureAwait(false);
+                await this.ExecuteWithPostContentAsync(GoogleSetAccountUrl, content).ConfigureAwait(false);
 
                 signup.User.DisplayName = displayName;
             }
@@ -158,7 +240,7 @@
             if (sendVerificationEmail)
             {
                 //send verification email
-                await SendEmailVerificationAsync(signup).ConfigureAwait(false);
+                await this.SendEmailVerificationAsync(signup).ConfigureAwait(false);
             }
 
             return signup;
@@ -194,7 +276,7 @@
 
             sb.Append($",\"returnSecureToken\":true}}");
 
-            return await ExecuteWithPostContentAsync(GoogleSetAccountUrl, sb.ToString()).ConfigureAwait(false);
+            return await this.ExecuteWithPostContentAsync(GoogleSetAccountUrl, sb.ToString()).ConfigureAwait(false);
         }
 
 
@@ -222,7 +304,6 @@
                 throw new FirebaseAuthException(GoogleDeleteUserUrl, content, responseData, ex, errorReason);
             }
         }
-
         /// <summary>
         /// Sends user an email with a link to reset his password.
         /// </summary>
@@ -254,18 +335,7 @@
             }
         }
 
-        /// <summary>
-        /// You can change a user's password by issuing an HTTP POST request to the Auth setAccountInfo endpoint.
-        /// </summary>
-        /// <param name="firebaseToken">A Firebase Auth ID token for the user.</param>
-        /// <param name="newpassword">User's new password.</param>
-        /// <returns></returns>
-        public async Task ChangePasswordAsync(string firebaseToken, string newpassword)
-        {
-            string content = $"{{\"idToken\":\"{firebaseToken}\",\"password\":\"{newpassword}\",\"returnSecureToken\":true}}";
 
-            await ExecuteWithPostContentAsync(GoogleSetAccountUrl, content).ConfigureAwait(false);
-        }
         /// <summary>
         /// Sends user an email with a link to verify his email address.
         /// </summary>
@@ -306,7 +376,6 @@
         {
             return await SendEmailVerificationAsync(auth.FirebaseToken, locale).ConfigureAwait(false);
         }
-
         /// <summary>
         /// You can update a user's profile (display name / photo URL) by issuing an HTTP POST request to the Auth setAccountInfo endpoint.
         /// </summary>
@@ -322,6 +391,7 @@
             return await ExecuteWithPostContentAsync(GoogleSetAccountUrl, content).ConfigureAwait(false);
         }
 
+
         /// <summary>
         /// Links the given <see cref="firebaseToken"/> with an email and password. 
         /// </summary>
@@ -331,9 +401,9 @@
         /// <returns> The <see cref="FirebaseAuthLink"/>. </returns>
         public async Task<FirebaseAuthLink> LinkAccountsAsync(string firebaseToken, string email, string password)
         {
-            string content = $"{{\"idToken\":\"{firebaseToken}\",\"email\":\"{email}\",\"password\":\"{password}\",\"returnSecureToken\":true}}";
+            var content = $"{{\"idToken\":\"{firebaseToken}\",\"email\":\"{email}\",\"password\":\"{password}\",\"returnSecureToken\":true}}";
 
-            return await ExecuteWithPostContentAsync(GoogleSetAccountUrl, content).ConfigureAwait(false);
+            return await this.ExecuteWithPostContentAsync(GoogleSetAccountUrl, content).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -345,7 +415,7 @@
         /// <returns> The <see cref="FirebaseAuthLink"/>. </returns>
         public async Task<FirebaseAuthLink> LinkAccountsAsync(FirebaseAuth auth, string email, string password)
         {
-            return await LinkAccountsAsync(auth.FirebaseToken, email, password).ConfigureAwait(false);
+            return await this.LinkAccountsAsync(auth.FirebaseToken, email, password).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -373,18 +443,16 @@
 
             return await ExecuteWithPostContentAsync(GoogleIdentityUrl, content).ConfigureAwait(false);
         }
-
         /// <summary>
-        /// Links the authenticated user represented by <see cref="auth"/> with and account from a third party provider.
+        /// Links the authenticated user represented by <see cref="auth"/> with an account from a third party provider.
         /// </summary>
         /// <param name="auth"> The auth. </param>
         /// <param name="authType"> The auth type.  </param>
         /// <param name="oauthAccessToken"> The access token retrieved from login provider of your choice. </param>
-        /// <param name="twitterTokenSecret">only when provider is twitter</param>
         /// <returns> The <see cref="FirebaseAuthLink"/>.  </returns>
-        public async Task<FirebaseAuthLink> LinkAccountsAsync(FirebaseAuth auth, FirebaseAuthType authType, string oauthAccessToken, string twitterTokenSecret = null)
+        public async Task<FirebaseAuthLink> LinkAccountsAsync(FirebaseAuth auth, FirebaseAuthType authType, string oauthAccessToken)
         {
-            return await LinkAccountsAsync(auth.FirebaseToken, authType, oauthAccessToken, twitterTokenSecret).ConfigureAwait(false);
+            return await this.LinkAccountsAsync(auth.FirebaseToken, authType, oauthAccessToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -402,12 +470,12 @@
             }
             else
             {
-                providerId = GetProviderId(authType);
+                providerId = this.GetProviderId(authType);
             }
 
-            string content = $"{{\"idToken\":\"{firebaseToken}\",\"deleteProvider\":[\"{providerId}\"]}}";
+            var content = $"{{\"idToken\":\"{firebaseToken}\",\"deleteProvider\":[\"{providerId}\"]}}";
 
-            return await ExecuteWithPostContentAsync(GoogleSetAccountUrl, content).ConfigureAwait(false);
+            return await this.ExecuteWithPostContentAsync(GoogleSetAccountUrl, content).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -418,7 +486,7 @@
         /// <returns> The <see cref="FirebaseAuthLink"/>.  </returns>
         public async Task<FirebaseAuthLink> UnlinkAccountsAsync(FirebaseAuth auth, FirebaseAuthType authType)
         {
-            return await UnlinkAccountsAsync(auth.FirebaseToken, authType).ConfigureAwait(false);
+            return await this.UnlinkAccountsAsync(auth.FirebaseToken, authType).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -433,12 +501,12 @@
 
             try
             {
-                HttpResponseMessage response = await client.PostAsync(new Uri(string.Format(GoogleCreateAuthUrl, authConfig.ApiKey)), new StringContent(content, Encoding.UTF8, "application/json")).ConfigureAwait(false);
+                var response = await this.client.PostAsync(new Uri(string.Format(GoogleCreateAuthUrl, this.authConfig.ApiKey)), new StringContent(content, Encoding.UTF8, "application/json")).ConfigureAwait(false);
                 responseData = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                 response.EnsureSuccessStatusCode();
 
-                ProviderQueryResult data = JsonConvert.DeserializeObject<ProviderQueryResult>(responseData);
+                var data = JsonConvert.DeserializeObject<ProviderQueryResult>(responseData);
                 data.Email = email;
 
                 return data;
@@ -451,15 +519,15 @@
 
         public async Task<FirebaseAuthLink> RefreshAuthAsync(FirebaseAuth auth)
         {
-            string content = $"{{\"grant_type\":\"refresh_token\", \"refresh_token\":\"{auth.RefreshToken}\"}}";
-            string responseData = "N/A";
+            var content = $"{{\"grant_type\":\"refresh_token\", \"refresh_token\":\"{auth.RefreshToken}\"}}";
+            var responseData = "N/A";
 
             try
             {
-                HttpResponseMessage response = await client.PostAsync(new Uri(string.Format(GoogleRefreshAuth, authConfig.ApiKey)), new StringContent(content, Encoding.UTF8, "application/json")).ConfigureAwait(false);
+                var response = await this.client.PostAsync(new Uri(string.Format(GoogleRefreshAuth, this.authConfig.ApiKey)), new StringContent(content, Encoding.UTF8, "application/json")).ConfigureAwait(false);
 
                 responseData = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                RefreshAuth refreshAuth = JsonConvert.DeserializeObject<RefreshAuth>(responseData);
+                var refreshAuth = JsonConvert.DeserializeObject<RefreshAuth>(responseData);
 
                 return new FirebaseAuthLink
                 {
@@ -481,8 +549,9 @@
         /// </summary>
         public void Dispose()
         {
-            client.Dispose();
+            this.client.Dispose();
         }
+
         /// <summary>
         /// Post request to firebase Api and get response object
         /// </summary>
@@ -497,7 +566,6 @@
 
             try
             {
-
                 StringContent StringContent = new StringContent(postContent, Encoding.UTF8, "application/json");
                 if (locale != null)
                 {
@@ -530,7 +598,7 @@
         /// <remarks>Currently only provides support for failed email auth flags.</remarks>
         private static AuthErrorReason GetFailureReason(string responseData)
         {
-            AuthErrorReason failureReason = AuthErrorReason.Undefined;
+            var failureReason = AuthErrorReason.Undefined;
             try
             {
                 if (!string.IsNullOrEmpty(responseData) && responseData != "N/A")
@@ -551,6 +619,10 @@
                             failureReason = AuthErrorReason.LoginCredentialsTooOld;
                             break;
 
+                        case "OPERATION_NOT_ALLOWED":
+                            failureReason = AuthErrorReason.OperationNotAllowed;
+                            break;
+
                         //possible errors from Third Party Authentication using GoogleIdentityUrl
                         case "INVALID_PROVIDER_ID : Provider Id is not supported.":
                             failureReason = AuthErrorReason.InvalidProviderID;
@@ -560,6 +632,9 @@
                             break;
                         case "A system error has occurred - missing or invalid postBody":
                             failureReason = AuthErrorReason.SystemError;
+                            break;
+                        case "MISSING_OR_INVALID_NONCE : Duplicate credential received. Please try again with a new credential.":
+                            failureReason = AuthErrorReason.DuplicateCredentialUse;
                             break;
 
                         //possible errors from Email/Password Account Signup (via signupNewUser or setAccountInfo) or Signin
@@ -571,9 +646,6 @@
                             break;
 
                         //possible errors from Email/Password Account Signup (via signupNewUser or setAccountInfo)
-                        case "WEAK_PASSWORD : Password should be at least 6 characters":
-                            failureReason = AuthErrorReason.WeakPassword;
-                            break;
                         case "EMAIL_EXISTS":
                             failureReason = AuthErrorReason.EmailExists;
                             break;
@@ -598,6 +670,9 @@
                         case "MISSING_EMAIL":
                             failureReason = AuthErrorReason.MissingEmail;
                             break;
+                        case "RESET_PASSWORD_EXCEED_LIMIT":
+                            failureReason = AuthErrorReason.ResetPasswordExceedLimit;
+                            break;
 
                         //possible errors from Password Recovery
                         case "MISSING_REQ_TYPE":
@@ -620,6 +695,16 @@
                             failureReason = AuthErrorReason.AlreadyLinked;
                             break;
                     }
+
+                    if (failureReason == AuthErrorReason.Undefined)
+                    {
+                        //possible errors from Email/Password Account Signup (via signupNewUser or setAccountInfo)
+                        if (errorData?.error?.message?.StartsWith("WEAK_PASSWORD :") ?? false) failureReason = AuthErrorReason.WeakPassword;
+                        //possible errors from Email/Password Signin
+                        else if (errorData?.error?.message?.StartsWith("TOO_MANY_ATTEMPTS_TRY_LATER :") ?? false) failureReason = AuthErrorReason.TooManyAttemptsTryLater;
+                        //ID Token issued is stale to sign-in (e.g. with Apple)
+                        else if (errorData?.error?.message?.StartsWith("ERROR_INVALID_CREDENTIAL") ?? false) failureReason = AuthErrorReason.StaleIDToken;
+                    }
                 }
             }
             catch (JsonReaderException)
@@ -641,6 +726,7 @@
             {
                 case FirebaseAuthType.Facebook:
                 case FirebaseAuthType.Google:
+                case FirebaseAuthType.Apple:
                 case FirebaseAuthType.Github:
                 case FirebaseAuthType.Twitter:
                     return authType.ToEnumString();

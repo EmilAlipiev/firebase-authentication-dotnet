@@ -46,9 +46,9 @@
         /// <param name="authType"> The auth type.  </param>
         /// <param name="oauthAccessToken"> The access token retrieved from login provider of your choice. </param>
         /// <returns> The <see cref="FirebaseAuthLink"/>.  </returns>
-        public async Task<FirebaseAuthLink> LinkToAsync(FirebaseAuthType authType, string oauthAccessToken, string twitterTokenSecret = null)
+        public async Task<FirebaseAuthLink> LinkToAsync(FirebaseAuthType authType, string oauthAccessToken)
         {
-            var auth = await this.AuthProvider.LinkAccountsAsync(this, authType, oauthAccessToken, twitterTokenSecret: twitterTokenSecret).ConfigureAwait(false);
+            var auth = await this.AuthProvider.LinkAccountsAsync(this, authType, oauthAccessToken).ConfigureAwait(false);
 
             this.CopyPropertiesLocally(auth.AuthProvider, auth);
 
