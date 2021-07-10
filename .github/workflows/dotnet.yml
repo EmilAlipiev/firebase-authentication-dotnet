@@ -18,6 +18,10 @@ jobs:
     - name: Build with dotnet
       run: msbuild src/Firebase.Auth/Firebase.Auth.csproj -property:Configuration=Release
     - name: Push Package to nuget
-      run: dotnet nuget push **/*.*nupkg
+      run: dotnet nuget push **/*.nupkg
+             --api-key ${{ secrets.nugetapikey }}
+             --source https://api.nuget.org/v3/index.jso
+    - name: Push Symbol to nuget
+      run: dotnet nuget push **/*.nupkg
              --api-key ${{ secrets.nugetapikey }}
              --source https://api.nuget.org/v3/index.json
