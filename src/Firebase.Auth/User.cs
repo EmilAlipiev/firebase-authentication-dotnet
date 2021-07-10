@@ -10,7 +10,7 @@
     public class User
     {
         /// <summary>
-        /// Gets or sets the local id.
+        /// The uid of the authenticated user.
         /// </summary>
         [JsonProperty("localId", DefaultValueHandling = DefaultValueHandling.Populate)]
         [DefaultValue("")]
@@ -21,7 +21,18 @@
         }
 
         /// <summary>
-        /// Gets or sets the federated id.
+        /// The linked provider ID (e.g. "google.com" for the Google provider).
+        /// </summary>
+        [JsonProperty("providerId", DefaultValueHandling = DefaultValueHandling.Populate)]
+        [DefaultValue("")]
+        public string ProviderId
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The unique ID identifies the IdP account.
         /// </summary>
         [JsonProperty("federatedId", DefaultValueHandling = DefaultValueHandling.Populate)]
         [DefaultValue("")]
@@ -65,7 +76,7 @@
         }
 
         /// <summary>
-        /// Gets or sets the email.
+        /// The email of the account.
         /// </summary>
         [JsonProperty("email", DefaultValueHandling = DefaultValueHandling.Populate)]
         [DefaultValue("")]
@@ -76,7 +87,7 @@
         }
 
         /// <summary>
-        /// Gets or sets the email verfication status.
+        /// Whether the sign-in email is verified.
         /// </summary>
         [JsonProperty("emailVerified", DefaultValueHandling = DefaultValueHandling.Populate)]
         [DefaultValue(false)]
@@ -92,6 +103,17 @@
         [JsonProperty("photoUrl", DefaultValueHandling = DefaultValueHandling.Populate)]
         [DefaultValue("")]
         public string PhotoUrl
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets the phone number.
+        /// </summary>
+        [JsonProperty("phoneNumber", DefaultValueHandling = DefaultValueHandling.Populate)]
+        [DefaultValue("")]
+        public string PhoneNumber
         {
             get;
             set;

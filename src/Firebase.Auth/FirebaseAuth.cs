@@ -13,6 +13,18 @@
             this.Created = DateTime.Now;
         }
 
+
+
+        /// <summary>
+        /// Gets or sets the The OAuth access token if available. this can be used to query Oauth like google or facebook
+        /// </summary>
+        [JsonProperty("oauthAccessToken")]
+        public string OauthAccessToken
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Gets or sets the firebase token which can be used for authenticated queries. 
         /// </summary>
@@ -67,6 +79,9 @@
         public bool IsExpired()
         {
             // include a small 10s window when the token is technically valid but it's a good idea to refresh it already.
+            if (this.ExpiresIn == 0 && RefreshToken==null)
+                return false;
+
             return DateTime.Now > this.Created.AddSeconds(this.ExpiresIn - 10); 
         }
     }

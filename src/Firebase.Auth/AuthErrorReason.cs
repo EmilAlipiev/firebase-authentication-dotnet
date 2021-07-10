@@ -11,6 +11,10 @@
         /// </summary>
         UserDisabled,
         /// <summary>
+        /// The user was not found
+        /// </summary>
+        UserNotFound,
+        /// <summary>
         /// Third-party Auth Providers: PostBody does not contain or contains invalid Authentication Provider string.
         /// </summary>
         InvalidProviderID,
@@ -73,7 +77,10 @@
         /// <summary>
         /// Linked Accounts: Request contains an invalid value for parameter: identifier.
         /// </summary>
-        InvalidIdentifier
-
+        InvalidIdentifier,
+        /// <summary>
+        /// Linked accounts: account to link has already been linked.
+        /// </summary>
+        AlreadyLinked
     }
 }

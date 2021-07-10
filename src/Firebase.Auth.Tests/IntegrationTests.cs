@@ -1,11 +1,11 @@
 ﻿namespace Firebase.Auth.Tests
 {
     using System;
+    using System.Linq;
 
     using FluentAssertions;
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using System.Linq;
 
     public class IntegrationTests
     {
@@ -23,40 +23,40 @@
         [TestMethod]
         public void FacebookTest()
         {
-            var authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
+            FirebaseAuthProvider authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
 
-            var auth = authProvider.SignInWithOAuthAsync(FirebaseAuthType.Facebook, FacebookAccessToken).Result;
+            FirebaseAuthLink auth = authProvider.SignInWithOAuthAsync(FirebaseAuthType.Facebook, FacebookAccessToken).Result;
 
-            auth.User.FirstName.ShouldBeEquivalentTo(FacebookTestUserFirstName);
+            auth.User.FirstName.Should().BeEquivalentTo(FacebookTestUserFirstName);
             auth.FirebaseToken.Should().NotBeNullOrWhiteSpace();
         }
 
         [TestMethod]
         public void GoogleTest()
         {
-            var authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
+            FirebaseAuthProvider authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
 
-            var auth = authProvider.SignInWithOAuthAsync(FirebaseAuthType.Google, GoogleAccessToken).Result;
+            FirebaseAuthLink auth = authProvider.SignInWithOAuthAsync(FirebaseAuthType.Google, GoogleAccessToken).Result;
 
-            auth.User.FirstName.ShouldBeEquivalentTo(GoogleTestUserFirstName);
+            auth.User.FirstName.Should().BeEquivalentTo(GoogleTestUserFirstName);
             auth.FirebaseToken.Should().NotBeNullOrWhiteSpace();
         }
 
         [TestMethod]
         public void EmailTest()
         {
-            var authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
+            FirebaseAuthProvider authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
 
-            var auth = authProvider.SignInWithEmailAndPasswordAsync(FirebaseEmail, FirebasePassword).Result;
+            FirebaseAuthLink auth = authProvider.SignInWithEmailAndPasswordAsync(FirebaseEmail, FirebasePassword).Result;
 
-            auth.User.Email.ShouldBeEquivalentTo(FirebaseEmail);
+            auth.User.Email.Should().BeEquivalentTo(FirebaseEmail);
             auth.FirebaseToken.Should().NotBeNullOrWhiteSpace();
         }
 
         [TestMethod]
         public void Unknown_email_address_should_be_reflected_by_failure_reason()
         {
-            using (var authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey)))
+            using (FirebaseAuthProvider authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey)))
             {
                 try
                 {
@@ -65,7 +65,7 @@
                 }
                 catch (Exception e)
                 {
-                    var exception = (FirebaseAuthException) e.InnerException;
+                    FirebaseAuthException exception = (FirebaseAuthException)e.InnerException;
                     exception.Reason.Should().Be(AuthErrorReason.UnknownEmailAddress);
                 }
             }
@@ -74,7 +74,7 @@
         [TestMethod]
         public void Invalid_email_address_format_should_be_reflected_by_failure_reason()
         {
-            using (var authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey)))
+            using (FirebaseAuthProvider authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey)))
             {
                 try
                 {
@@ -83,7 +83,7 @@
                 }
                 catch (Exception e)
                 {
-                    var exception = (FirebaseAuthException)e.InnerException;
+                    FirebaseAuthException exception = (FirebaseAuthException)e.InnerException;
                     exception.Reason.Should().Be(AuthErrorReason.InvalidEmailAddress);
                 }
             }
@@ -94,7 +94,7 @@
         [TestMethod]
         public void Invalid_password_should_be_reflected_by_failure_reason()
         {
-            using (var authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey)))
+            using (FirebaseAuthProvider authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey)))
             {
                 try
                 {
@@ -103,7 +103,7 @@
                 }
                 catch (Exception e)
                 {
-                    var exception = (FirebaseAuthException)e.InnerException;
+                    FirebaseAuthException exception = (FirebaseAuthException)e.InnerException;
                     exception.Reason.Should().Be(AuthErrorReason.WrongPassword);
                 }
             }
@@ -112,25 +112,25 @@
         [TestMethod]
         public void CreateUserTest()
         {
-            var authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
-            var email = $"abcd{new Random().Next()}@test.com"; 
+            FirebaseAuthProvider authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
+            string email = $"abcd{new Random().Next()}@test.com";
 
-            var auth = authProvider.SignInWithEmailAndPasswordAsync(email, "test1234").Result;
+            FirebaseAuthLink auth = authProvider.SignInWithEmailAndPasswordAsync(email, "test1234").Result;
 
-            auth.User.Email.ShouldBeEquivalentTo(email);
+            auth.User.Email.Should().BeEquivalentTo(email);
             auth.FirebaseToken.Should().NotBeNullOrWhiteSpace();
         }
 
         [TestMethod]
         public void LinkAccountsTest()
         {
-            var authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
-            var email = $"abcd{new Random().Next()}@test.com";
+            FirebaseAuthProvider authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
+            string email = $"abcd{new Random().Next()}@test.com";
 
-            var auth = authProvider.SignInAnonymouslyAsync().Result;
-            var newAuth = auth.LinkToAsync(email, "test1234").Result;
+            FirebaseAuthLink auth = authProvider.SignInAnonymouslyAsync().Result;
+            FirebaseAuthLink newAuth = auth.LinkToAsync(email, "test1234").Result;
 
-            newAuth.User.Email.ShouldBeEquivalentTo(email);
+            newAuth.User.Email.Should().BeEquivalentTo(email);
             newAuth.User.LocalId.Should().Be(auth.User.LocalId);
             newAuth.FirebaseToken.Should().NotBeNullOrWhiteSpace();
         }
@@ -138,41 +138,41 @@
         [TestMethod]
         public void LinkAccountsFacebookTest()
         {
-            var authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
+            FirebaseAuthProvider authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
 
-            var auth = authProvider.SignInAnonymouslyAsync().Result;
-            var newAuth = auth.LinkToAsync(FirebaseAuthType.Facebook, FacebookAccessToken).Result;
+            FirebaseAuthLink auth = authProvider.SignInAnonymouslyAsync().Result;
+            FirebaseAuthLink newAuth = auth.LinkToAsync(FirebaseAuthType.Facebook, FacebookAccessToken).Result;
 
             newAuth.User.LocalId.Should().Be(auth.User.LocalId);
-            newAuth.User.FirstName.ShouldBeEquivalentTo(FacebookTestUserFirstName);
+            newAuth.User.FirstName.Should().BeEquivalentTo(FacebookTestUserFirstName);
             newAuth.FirebaseToken.Should().NotBeNullOrWhiteSpace();
         }
 
         [TestMethod]
         public void GetLinkedAccountsTest()
         {
-            var authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
-            var email = $"abcd{new Random().Next()}@test.com";
+            FirebaseAuthProvider authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
+            string email = $"abcd{new Random().Next()}@test.com";
 
-            var auth = authProvider.CreateUserWithEmailAndPasswordAsync(email, "test1234").Result;
-            var linkedAccounts = authProvider.GetLinkedAccountsAsync(email).Result;
+            FirebaseAuthLink auth = authProvider.CreateUserWithEmailAndPasswordAsync(email, "test1234").Result;
+            ProviderQueryResult linkedAccounts = authProvider.GetLinkedAccountsAsync(email).Result;
 
             linkedAccounts.IsRegistered.Should().BeTrue();
-            linkedAccounts.Providers.Single().ShouldBeEquivalentTo(FirebaseAuthType.EmailAndPassword);
+            linkedAccounts.Providers.Single().Should().BeEquivalentTo(FirebaseAuthType.EmailAndPassword);
         }
 
         [TestMethod]
         public void RefreshAccessToken()
         {
-            var authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
+            FirebaseAuthProvider authProvider = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
 
-            var auth = authProvider.SignInWithOAuthAsync(FirebaseAuthType.Facebook, FacebookAccessToken).Result;
-            var originalToken = auth.FirebaseToken;
-            
+            FirebaseAuthLink auth = authProvider.SignInWithOAuthAsync(FirebaseAuthType.Facebook, FacebookAccessToken).Result;
+            string originalToken = auth.FirebaseToken;
+
             // simulate the token already expired
             auth.Created = DateTime.MinValue;
-            
-            var freshAuth = auth.GetFreshAuthAsync().Result;
+
+            FirebaseAuthLink freshAuth = auth.GetFreshAuthAsync().Result;
 
             freshAuth.FirebaseToken.Should().NotBe(originalToken);
         }
