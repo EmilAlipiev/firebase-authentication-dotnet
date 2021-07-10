@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>FirebaseAuthNet</PackageId>
-    <PackageVersion>1.0.2</PackageVersion>
+    <PackageVersion>1.0.3-beta</PackageVersion>
     <Authors>Emil Alipiev</Authors>
     <Description>Firebase authentication library. It can generate Firebase auth token based on given OAuth token (issued by Google, Facebook...). This Firebase token can then be used with REST queries against Firebase endpoints. </Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
