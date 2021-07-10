@@ -22,6 +22,6 @@ jobs:
              --api-key ${{ secrets.nugetapikey }}
              --source https://api.nuget.org/v3/index.jso
     - name: Push Symbol to nuget
-      run: dotnet nuget push **/*.nupkg
+      run: dotnet nuget push **/*.snupkg
              --api-key ${{ secrets.nugetapikey }}
              --source https://api.nuget.org/v3/index.json
