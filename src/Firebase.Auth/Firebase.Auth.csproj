@@ -12,6 +12,7 @@
     <PackageLicenseUrl></PackageLicenseUrl>
     <IncludeSource>True</IncludeSource>
     <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <Copyright></Copyright>
     <PackageTags>Firebase Auth Authentication Google Facebook Github Twitter</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
