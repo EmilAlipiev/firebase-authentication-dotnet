@@ -20,8 +20,8 @@ jobs:
     - name: Push Package to nuget
       run: dotnet nuget push **/*.nupkg
              --api-key ${{ secrets.nugetapikey }}
-             --source https://api.nuget.org/v3/index.jso
+             --source https://api.nuget.org/v3/index.json
     - name: Push Symbol to nuget
-      run: dotnet nuget push **/*.snupkg
+      run: dotnet nuget push **/*.snupkg --skip-duplicate 
              --api-key ${{ secrets.nugetapikey }}
              --source https://api.nuget.org/v3/index.json
