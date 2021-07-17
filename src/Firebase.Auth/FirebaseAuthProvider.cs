@@ -68,7 +68,10 @@
             var responseData = "N/A";
             try
             {
-                var response = await this.client.PostAsync(new Uri(string.Format(GoogleGetUser, this.authConfig.ApiKey)), new StringContent(content, Encoding.UTF8, "application/json")).ConfigureAwait(false);
+                var stringContent = new StringContent(content, Encoding.UTF8, "application/json");
+                stringContent = GetHeaders(null, stringContent);
+
+                var response = await this.client.PostAsync(new Uri(string.Format(GoogleGetUser, this.authConfig.ApiKey)), stringContent).ConfigureAwait(false);
                 responseData = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
 
@@ -199,7 +202,7 @@
 
             return await this.ExecuteWithPostContentAsync(GoogleUpdateUserPassword, content).ConfigureAwait(false);
         }
-       
+
         /// <summary>
         /// Change a email from an user with his token.
         /// </summary>
@@ -291,7 +294,10 @@
 
             try
             {
-                HttpResponseMessage response = await client.PostAsync(new Uri(string.Format(GoogleDeleteUserUrl, authConfig.ApiKey)), new StringContent(content, Encoding.UTF8, "application/json")).ConfigureAwait(false);
+                var stringContent = new StringContent(content, Encoding.UTF8, "application/json");
+                stringContent = GetHeaders(null, stringContent);
+
+                HttpResponseMessage response = await client.PostAsync(new Uri(string.Format(GoogleDeleteUserUrl, authConfig.ApiKey)), stringContent).ConfigureAwait(false);
                 responseData = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                 response.EnsureSuccessStatusCode();
@@ -315,13 +321,10 @@
             try
             {
 
-                StringContent StringContent = new StringContent(content, Encoding.UTF8, "application/json");
-                if (locale != null)
-                {
-                    StringContent.Headers.Add("X-Firebase-Locale", locale);
-                }
+                var stringContent = new StringContent(content, Encoding.UTF8, "application/json");
+                stringContent = GetHeaders(null, stringContent);
 
-                HttpResponseMessage response = await client.PostAsync(new Uri(string.Format(GoogleGetConfirmationCodeUrl, authConfig.ApiKey)), StringContent).ConfigureAwait(false);
+                HttpResponseMessage response = await client.PostAsync(new Uri(string.Format(GoogleGetConfirmationCodeUrl, authConfig.ApiKey)), stringContent).ConfigureAwait(false);
                 responseData = await response.Content.ReadAsStringAsync();
 
                 response.EnsureSuccessStatusCode();
@@ -348,13 +351,10 @@
             try
             {
 
-                StringContent StringContent = new StringContent(content, Encoding.UTF8, "application/json");
-                if (locale != null)
-                {
-                    StringContent.Headers.Add("X-Firebase-Locale", locale);
-                }
+                var stringContent = new StringContent(content, Encoding.UTF8, "application/json");
+                stringContent = GetHeaders(null, stringContent);
 
-                HttpResponseMessage response = await client.PostAsync(new Uri(string.Format(GoogleGetConfirmationCodeUrl, authConfig.ApiKey)), StringContent).ConfigureAwait(false);
+                HttpResponseMessage response = await client.PostAsync(new Uri(string.Format(GoogleGetConfirmationCodeUrl, authConfig.ApiKey)), stringContent).ConfigureAwait(false);
                 responseData = await response.Content.ReadAsStringAsync();
 
                 response.EnsureSuccessStatusCode();
@@ -501,7 +501,9 @@
 
             try
             {
-                var response = await this.client.PostAsync(new Uri(string.Format(GoogleCreateAuthUrl, this.authConfig.ApiKey)), new StringContent(content, Encoding.UTF8, "application/json")).ConfigureAwait(false);
+                var stringContent = new StringContent(content, Encoding.UTF8, "application/json");
+                stringContent = GetHeaders(null, stringContent);
+                var response = await this.client.PostAsync(new Uri(string.Format(GoogleCreateAuthUrl, this.authConfig.ApiKey)), stringContent).ConfigureAwait(false);
                 responseData = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                 response.EnsureSuccessStatusCode();
@@ -517,6 +519,11 @@
             }
         }
 
+        /// <summary>
+        /// Refresh Auth
+        /// </summary>
+        /// <param name="auth"></param>
+        /// <returns></returns>
         public async Task<FirebaseAuthLink> RefreshAuthAsync(FirebaseAuth auth)
         {
             var content = $"{{\"grant_type\":\"refresh_token\", \"refresh_token\":\"{auth.RefreshToken}\"}}";
@@ -524,7 +531,9 @@
 
             try
             {
-                var response = await this.client.PostAsync(new Uri(string.Format(GoogleRefreshAuth, this.authConfig.ApiKey)), new StringContent(content, Encoding.UTF8, "application/json")).ConfigureAwait(false);
+                var stringContent = new StringContent(content, Encoding.UTF8, "application/json");
+                stringContent = GetHeaders(null, stringContent);
+                var response = await this.client.PostAsync(new Uri(string.Format(GoogleRefreshAuth, this.authConfig.ApiKey)), stringContent).ConfigureAwait(false);
 
                 responseData = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 var refreshAuth = JsonConvert.DeserializeObject<RefreshAuth>(responseData);
@@ -566,11 +575,8 @@
 
             try
             {
-                StringContent StringContent = new StringContent(postContent, Encoding.UTF8, "application/json");
-                if (locale != null)
-                {
-                    StringContent.Headers.Add("X-Firebase-Locale", locale);
-                }
+                var StringContent = new StringContent(postContent, Encoding.UTF8, "application/json");
+                StringContent = GetHeaders(locale, StringContent);
 
                 HttpResponseMessage response = await client.PostAsync(new Uri(string.Format(googleUrl, authConfig.ApiKey)), StringContent).ConfigureAwait(false);
                 responseData = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -590,6 +596,21 @@
                 AuthErrorReason errorReason = GetFailureReason(responseData);
                 throw new FirebaseAuthException(googleUrl, postContent, responseData, ex, errorReason);
             }
+        }
+
+        private StringContent GetHeaders(string locale, StringContent StringContent)
+        {
+            if (locale != null)
+            {
+                StringContent.Headers.Add("X-Firebase-Locale", locale);
+            }
+
+            if (authConfig.BundleIdentifier != null)
+            {
+                StringContent.Headers.Add("X-Ios-Bundle-Identifier", authConfig.BundleIdentifier);
+            }
+
+            return StringContent;
         }
 
         /// <summary>
