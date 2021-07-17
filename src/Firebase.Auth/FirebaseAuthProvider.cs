@@ -605,9 +605,9 @@
                 StringContent.Headers.Add("X-Firebase-Locale", locale);
             }
 
-            if (authConfig.BundleIdentifier != null)
+            if (authConfig.IosBundleIdentifier != null)
             {
-                StringContent.Headers.Add("X-Ios-Bundle-Identifier", authConfig.BundleIdentifier);
+                StringContent.Headers.Add("X-Ios-Bundle-Identifier", authConfig.IosBundleIdentifier);
             }
 
             return StringContent;

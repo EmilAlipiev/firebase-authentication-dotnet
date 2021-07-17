@@ -9,11 +9,11 @@
         /// Initializes a new instance of the <see cref="FirebaseConfig"/> class.
         /// </summary>
         /// <param name="apiKey"> The api key of your Firebase app. </param>
-        /// <param name="bundleIdentifier">required for Ios as X-Ios-Bundle-Identifier header if Api key is restricted by Bundle identifier</param>
-        public FirebaseConfig(string apiKey, string bundleIdentifier = null)
+        /// <param name="IosbundleIdentifier">required for Ios as X-Ios-Bundle-Identifier header if Api key is restricted by Bundle identifier</param>
+        public FirebaseConfig(string apiKey, string IosbundleIdentifier = null)
         {
             this.ApiKey = apiKey;
-            BundleIdentifier = bundleIdentifier;
+            IosBundleIdentifier = IosbundleIdentifier;
         }
 
         /// <summary>
@@ -28,6 +28,6 @@
         /// <summary>
         /// Required for Ios as X-Ios-Bundle-Identifier header if Api key is restricted by Bundle identifie
         /// </summary>
-        public string BundleIdentifier { get; set; }
+        public string IosBundleIdentifier { get; set; }
     }
 }
