@@ -12,7 +12,7 @@
         /// <param name="IosbundleIdentifier">required for Ios as X-Ios-Bundle-Identifier header if Api key is restricted by Bundle identifier</param>
         public FirebaseConfig(string apiKey, string IosbundleIdentifier = null)
         {
-            this.ApiKey = apiKey;
+            ApiKey = apiKey;
             IosBundleIdentifier = IosbundleIdentifier;
         }
 
