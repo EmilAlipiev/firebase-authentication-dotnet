@@ -59,6 +59,7 @@
 
         /// <summary>
         /// Using the idToken of an authenticated user, get the details of the user's account
+        /// This will method possibly will return 400 bad request for social media logins like facebook, twitter because firebase doesn't store user information
         /// </summary>
         /// <param name="firebaseToken"> The FirebaseToken (idToken) of an authenticated user. </param>
         /// <returns> The <see cref="User"/>. </returns>
@@ -118,7 +119,7 @@
             }
 
             FirebaseAuthLink firebaseAuthLink = await this.ExecuteWithPostContentAsync(GoogleIdentityUrl, content).ConfigureAwait(false);
-            firebaseAuthLink.User = await this.GetUserAsync(firebaseAuthLink.FirebaseToken).ConfigureAwait(false);
+      
             return firebaseAuthLink;
         }
 
@@ -135,7 +136,7 @@
             var content = $"{{\"postBody\":\"access_token={oauthAccessToken}&oauth_token_secret={oauthTokenSecret}&providerId={providerId}\",\"requestUri\":\"http://localhost\",\"returnSecureToken\":true}}";
 
             FirebaseAuthLink firebaseAuthLink = await this.ExecuteWithPostContentAsync(GoogleIdentityUrl, content).ConfigureAwait(false);
-            firebaseAuthLink.User = await this.GetUserAsync(firebaseAuthLink.FirebaseToken).ConfigureAwait(false);
+         
             return firebaseAuthLink;
         }
 
@@ -151,7 +152,7 @@
             var content = $"{{\"postBody\":\"id_token={idToken}&providerId={providerId}\",\"requestUri\":\"http://localhost\",\"returnSecureToken\":true}}";
 
             FirebaseAuthLink firebaseAuthLink = await this.ExecuteWithPostContentAsync(GoogleIdentityUrl, content).ConfigureAwait(false);
-            firebaseAuthLink.User = await this.GetUserAsync(firebaseAuthLink.FirebaseToken).ConfigureAwait(false);
+   
             return firebaseAuthLink;
         }
 
@@ -186,7 +187,7 @@
             sb.Append("\"returnSecureToken\":true}");
 
             FirebaseAuthLink firebaseAuthLink = await this.ExecuteWithPostContentAsync(GooglePasswordUrl, sb.ToString()).ConfigureAwait(false);
-            firebaseAuthLink.User = await this.GetUserAsync(firebaseAuthLink.FirebaseToken).ConfigureAwait(false);
+  
             return firebaseAuthLink;
         }
 

@@ -7,12 +7,12 @@
 
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    [TestClass]
     public class IntegrationTests
     {
         private const string ApiKey = "<YOUR API KEY>";
 
-        private const string FacebookAccessToken = "<FACEBOOK USER ACCESS TOKEN>";
-        private const string FacebookTestUserFirstName = "Mark";
+        private const string FacebookAccessToken = "<FACEBOOK USER ACCESS TOKEN>"; private const string FacebookTestUserFirstName = "Mark";
 
         private const string GoogleAccessToken = "<GOOGLE USER ACCESS TOKEN>";
         private const string GoogleTestUserFirstName = "Mark";
@@ -28,7 +28,7 @@
             FirebaseAuthLink auth = authProvider.SignInWithOAuthAsync(FirebaseAuthType.Facebook, FacebookAccessToken).Result;
 
             auth.User.FirstName.Should().BeEquivalentTo(FacebookTestUserFirstName);
-            auth.FirebaseToken.Should().NotBeNullOrWhiteSpace();
+            auth.OauthAccessToken.Should().NotBeNullOrWhiteSpace();
         }
 
         [TestMethod]
