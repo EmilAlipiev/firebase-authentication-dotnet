@@ -82,7 +82,7 @@
             if (this.ExpiresIn == 0 && RefreshToken==null)
                 return false;
 
-            return DateTime.UtcNow > this.Created.AddSeconds(this.ExpiresIn - 10); 
+            return DateTime.Now > this.Created.AddSeconds(this.ExpiresIn - 10); 
         }
     }
 }
