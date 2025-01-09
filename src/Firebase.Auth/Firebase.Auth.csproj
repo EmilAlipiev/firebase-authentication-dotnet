@@ -1,15 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>FirebaseAuthNet</PackageId>
-    <PackageVersion>1.1.4</PackageVersion>
+    <PackageVersion>2.0.0</PackageVersion>
     <Authors>Emil Alipiev</Authors>
     <Description>Firebase authentication library. It can generate Firebase auth token based on given OAuth token (issued by Google, Facebook...). This Firebase token can then be used with REST queries against Firebase endpoints. </Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageIconUrl></PackageIconUrl>
     <PackageProjectUrl>https://github.com/EmilAlipiev/firebase-authentication-dotnet</PackageProjectUrl>
-    <PackageLicenseUrl></PackageLicenseUrl>
+    <PackageLicenseUrl>https://github.com/EmilAlipiev/firebase-authentication-dotnet?tab=MIT-1-ov-file</PackageLicenseUrl>
     <IncludeSource>True</IncludeSource>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -18,8 +16,11 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Product>FirebaseAuthNet</Product>
     <RepositoryUrl>https://github.com/EmilAlipiev/firebase-authentication-dotnet</RepositoryUrl>
-    <Version>1.1.4</Version>
-    <PackageReleaseNotes>Fix IsExpired</PackageReleaseNotes>
+    <Version>2.0.0</Version>
+    <PackageReleaseNotes>net6 and above support</PackageReleaseNotes>
+    <TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
+    <LangVersion>12</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

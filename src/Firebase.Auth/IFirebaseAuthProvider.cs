@@ -1,4 +1,6 @@
-﻿namespace Firebase.Auth
+﻿using System.Collections.Generic;
+
+namespace Firebase.Auth
 {
     using System.Threading.Tasks;
 
@@ -15,14 +17,14 @@
         /// <param name="displayName"> Optional display name. </param>
         /// <param name="sendVerificationEmail"> Optional. Whether to send user a link to verfiy his email address. </param>
         /// <returns> The <see cref="FirebaseAuthLink"/>. </returns>
-        Task<FirebaseAuthLink> CreateUserWithEmailAndPasswordAsync(string email, string password, string displayName = "", bool sendVerificationEmail = false, string locale = null);
+        Task<FirebaseAuthLink> CreateUserWithEmailAndPasswordAsync(string email, string password, string displayName = "", bool sendVerificationEmail = false, string? locale = null);
 
         /// <summary>
         /// Sends user an email with a link to reset his password.
         /// </summary>
         /// <param name="email"> The email.  </param>
         /// <returns> The <see cref="Task"/>. </returns>
-        Task<bool> SendPasswordResetEmailAsync(string email, string locale = null);
+        Task<bool> SendPasswordResetEmailAsync(string email, string? locale = null);
 
         /// <summary>
         /// Sign in user anonymously. He would still have a user id and access token generated, but name and other personal user properties will be null.
@@ -37,7 +39,7 @@
         /// <param name="password"> The password. </param>
         /// <param name="tenantId"></param>
         /// <returns> The <see cref="FirebaseAuthLink"/>. </returns>
-        Task<FirebaseAuthLink> SignInWithEmailAndPasswordAsync(string email, string password, string tenantId = null);
+        Task<FirebaseAuthLink> SignInWithEmailAndPasswordAsync(string email, string password, string? tenantId = null);
 
         /// <summary>
         /// Using the provided access token from third party auth provider (google, facebook...), get the firebase auth with token and basic user credentials.
@@ -121,7 +123,7 @@
         /// <param name="authType"> The auth type.  </param>
         /// <param name="oauthAccessToken"> The access token retrieved from login provider of your choice. </param>
         /// <returns> The <see cref="FirebaseAuthLink"/>.  </returns>
-        Task<FirebaseAuthLink> LinkAccountsAsync(string firebaseToken, FirebaseAuthType authType, string oauthAccessToken, string twitterTokenSecret = null);
+        Task<FirebaseAuthLink> LinkAccountsAsync(string firebaseToken, FirebaseAuthType authType, string oauthAccessToken, string? twitterTokenSecret = null);
 
         /// <summary>
         /// Unlinks the given <see cref="authType"/> from the account associated with <see cref="firebaseToken"/>.
@@ -164,13 +166,13 @@
         /// Sends user an email with a link to verify his email address.
         /// </summary>
         /// <param name="firebaseToken"> The FirebaseToken (idToken) of an authenticated user. </param>
-        Task<bool> SendEmailVerificationAsync(string firebaseToken, string locale = null);
+        Task<bool> SendEmailVerificationAsync(string firebaseToken, string? locale = null);
 
         /// <summary>
         /// Sends user an email with a link to verify his email address.
         /// </summary>
         /// <param name="auth"> The authenticated user to verify email address. </param>
-        Task<bool> SendEmailVerificationAsync(FirebaseAuth auth, string locale = null);
+        Task<bool> SendEmailVerificationAsync(FirebaseAuth auth, string? locale = null);
 
         /// <summary>
         /// Refreshes given auth using its refresh token.
@@ -192,7 +194,7 @@
         /// <param name="photoUrl"></param>
         /// <param name="deleteAttribute"></param>
         /// <returns></returns>
-        Task<FirebaseAuthLink> UpdateUserProfile(string firebaseToken, string displayName, string photoUrl = null, System.Collections.Generic.List<string> deleteAttribute = null);
+        Task<FirebaseAuthLink> UpdateUserProfile(string firebaseToken, string displayName, string? photoUrl = null, List<string>? deleteAttribute = null);
 
         /// <summary>
         /// You can change a user's password by issuing an HTTP POST request to the Auth setAccountInfo endpoint.

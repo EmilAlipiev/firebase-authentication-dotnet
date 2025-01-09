@@ -28,6 +28,6 @@
         /// <summary>
         /// Required for Ios as X-Ios-Bundle-Identifier header if Api key is restricted by Bundle identifie
         /// </summary>
-        public string IosBundleIdentifier { get; set; }
+        public string? IosBundleIdentifier { get; set; }
     }
 }
